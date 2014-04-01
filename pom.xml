@@ -80,6 +80,14 @@
 			<version>1.7.6</version>
 		</dependency>
 
+		<dependency>
+		    <groupId>com.tomtom.photon</groupId>
+		    <artifactId>zone-maker</artifactId>
+		    <version>0.1</version>
+		    <scope>system</scope>
+		    <systemPath>${project.basedir}/conf/zone-maker-0.1.jar</systemPath>
+		</dependency>
+
 <!-- 		<dependency> -->
 <!-- 			<groupId>com.tomtom.photon</groupId> -->
 <!-- 			<artifactId>zone-maker</artifactId> -->

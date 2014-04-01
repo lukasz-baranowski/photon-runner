@@ -70,22 +70,27 @@ public class PhotonRunner extends AbstractArgs4jTool {
 
     private void runZoneMakerInMode(ZoneMakerMode mode, List<ContinentSettings> continents) throws IOException {
         for (ContinentSettings con : continents) {
-            Params p = new Params();
-            p.setCountryConfig(this.countryConfig);
-            p.setEndpointUrl(this.accessPointWs);
-            p.setOutputDir(this.zoneMakerOut);
-            p.setJournalVersion(con.getTransactionVersion());
-            p.setRegionName(con.getName());
-            p.setWorkMode(Params.WORK_MODE.valueOf(mode.toString()));
-            p.setZoneType(Params.ZONE_TYPE.valueOf("COUNTRY"));
-            p.setZoningUrl(this.zoningService);
-            p.setRegionVersion(con.getVersion());
-            if (ADM_MODE_CONTINENTS.contains(con.getName())) {
-                p.setAdministrativeLevel(Params.ADMINISTRATIVE_LEVEL.ORDER1);
-            }
+            Params p = createZoneMakerParams(mode, con);
             ZoneMaker zm = new ZoneMaker(p);
             zm.run();
         }
+    }
+
+    private Params createZoneMakerParams(ZoneMakerMode mode, ContinentSettings con) {
+        Params p = new Params();
+        p.setCountryConfig(this.countryConfig);
+        p.setEndpointUrl(this.accessPointWs);
+        p.setOutputDir(this.zoneMakerOut);
+        p.setJournalVersion(con.getTransactionVersion());
+        p.setRegionName(con.getName());
+        p.setWorkMode(Params.WORK_MODE.valueOf(mode.toString()));
+        p.setZoneType(Params.ZONE_TYPE.valueOf("COUNTRY"));
+        p.setZoningUrl(this.zoningService);
+        p.setRegionVersion(con.getVersion());
+        if (ADM_MODE_CONTINENTS.contains(con.getName())) {
+            p.setAdministrativeLevel(Params.ADMINISTRATIVE_LEVEL.ORDER1);
+        }
+        return p;
     }
 
     private void runPhoton(List<ContinentSettings> continents) throws IOException {
@@ -134,21 +139,9 @@ public class PhotonRunner extends AbstractArgs4jTool {
     private void runCommand(String command) throws IOException {
         log("Running command: " + command);
         ProcessBuilder builder = new ProcessBuilder(command);
-        Process process;
-        try {
-            process = builder.start();
-            InputStream in = process.getInputStream();
-            InputStream err = process.getErrorStream();
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        // Process proc = Runtime.getRuntime().exec(command);
-        // int res = proc.exitValue();
-        // log("" + res);
-        // Then retreive the process output
-        // InputStream in = proc.getInputStream();
-        // InputStream err = proc.getErrorStream();
+        Process process = builder.start();
+        InputStream in = process.getInputStream();
+        InputStream err = process.getErrorStream();
     }
 
     private List<ContinentSettings> readConfig(File config) throws IOException {
