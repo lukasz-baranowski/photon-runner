@@ -1,6 +1,7 @@
 package com.tomtom.photon.runner;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Optional;
 
 public class SendRunner implements Callable<Void> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FetchRunner.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SendRunner.class);
 
 	private final String zoningService;
 	private final FetchRunner fetchTask;
@@ -30,22 +31,37 @@ public class SendRunner implements Callable<Void> {
 
 	@Override
 	public Void call() throws Exception {
-		
-		
-		while(true) {
-		
+
+		while (true) {
+			LOGGER.info("Starting");
+
 			if (fetchTask.finished && !getNextFileToSend().isPresent()) {
 				break;
 			}
-			TimeUnit.SECONDS.sleep(10);
+			TimeUnit.SECONDS.sleep(2);
 		}
 		LOGGER.info("Finished");
 		return null;
-		
+
 	}
 
 	private Optional<File> getNextFileToSend() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		File[] files = fetchOut.listFiles(new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				if (name.endsWith(".json")) {
+					return true;
+				}
+				return false;
+			}
+		});
+
+		if (files.length == 0) {
+			return Optional.absent();
+		} else {
+			return Optional.of(files[0]);
+		}
 	}
 
 }

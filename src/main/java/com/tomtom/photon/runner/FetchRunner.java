@@ -45,7 +45,7 @@ final class FetchRunner implements Callable<Void> {
 		File fetchOut = new File(out, PhotonRunner.FETCHED_DIR);
 		fetchOut.mkdirs();
 		for (ContinentSettings con : continents) {
-			LOGGER.info("Fetch: " + con.getName());
+			LOGGER.debug("Fetch: " + con.getName());
 			File doneMarker = new File(fetchOut, con.getName() + ".done");
 			if (doneMarker.exists()) {
 				LOGGER.info("Already fetched skipping.");
@@ -67,7 +67,7 @@ final class FetchRunner implements Callable<Void> {
 			// ZoneMaker zm = new ZoneMaker(p);
 			// zm.run();
 			doneMarker.createNewFile();
-			LOGGER.info("Done: " + con.getName());
+			LOGGER.debug("Done: " + con.getName());
 		}
 		finished = true;
 		LOGGER.info("Finished");
