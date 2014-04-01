@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
@@ -15,21 +17,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.teleatlas.global.common.cli.AbstractArgs4jTool;
 import com.teleatlas.global.common.cli.ToolExecutionException;
-import com.tomtom.photon.tools.zonemaker.Params;
-import com.tomtom.photon.tools.zonemaker.ZoneMaker;
 
 public class PhotonRunner extends AbstractArgs4jTool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PhotonRunner.class);
 
-	private static String FETCHED_DIR = "fetched";
-	private static String SENT_DIR = "sent";
-	private static String DONE_DIR = "done";
-
-	private enum ZoneMakerMode {
-		FETCH, SEND;
-	}
-
-	private static final List<String> ADM_MODE_CONTINENTS = Arrays.asList("NAM");
+	public static String FETCHED_DIR = "fetched";
+	public static String SENT_DIR = "sent";
+	public static String DONE_DIR = "done";
 
 	@Option(name = "--continents", usage = "Sets continents config file", aliases = "-c", required = true)
 	private File continentsFile;
@@ -62,40 +56,19 @@ public class PhotonRunner extends AbstractArgs4jTool {
 			if (!continentsFile.exists()) {
 				throw new IllegalArgumentException("No such file: " + this.continentsFile.getAbsolutePath());
 			}
-			List<ContinentSettings> continents = readConfig(this.continentsFile);
+			final List<ContinentSettings> continents = readConfig(this.continentsFile);
 
-			fetch(continents);
+			ExecutorService pool = Executors.newFixedThreadPool(3);
+
+			FetchRunner fetchTask = new FetchRunner(continents, this.out, this.countryConfig, this.accessPointWs, this.zoningService);
+			pool.submit(fetchTask);
+			pool.submit(new SendRunner(this.out,this.zoningService,fetchTask));
 			// fetch(ZoneMakerMode.SEND, continents);
 
 			// runPhoton(continents);
+			pool.awaitTermination(365, TimeUnit.DAYS);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
-		}
-	}
-
-	private void fetch(List<ContinentSettings> continents) throws IOException {
-		File fetchOut = new File(this.out, FETCHED_DIR);
-		for (ContinentSettings con : continents) {
-			File doneMarker = new File(fetchOut, con.getName() + ".done");
-			if (doneMarker.exists()) {
-				continue;
-			}
-			Params p = new Params();
-			p.setCountryConfig(this.countryConfig);
-			p.setEndpointUrl(this.accessPointWs);
-			p.setOutputDir(fetchOut.getAbsolutePath());
-			p.setJournalVersion(con.getTransactionVersion());
-			p.setRegionName(con.getName());
-			p.setWorkMode(Params.WORK_MODE.FETCH);
-			p.setZoneType(Params.ZONE_TYPE.COUNTRY);
-			p.setZoningUrl(this.zoningService);
-			p.setRegionVersion(con.getVersion());
-			if (ADM_MODE_CONTINENTS.contains(con.getName())) {
-				p.setAdministrativeLevel(Params.ADMINISTRATIVE_LEVEL.ORDER1);
-			}
-			ZoneMaker zm = new ZoneMaker(p);
-			// zm.run();
-			doneMarker.createNewFile();
 		}
 	}
 
