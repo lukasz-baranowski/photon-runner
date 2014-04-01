@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration>
+	<!-- Appenders (standard logging) -->
+	<appender name="A1" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%t] %-5p %c %x - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="R" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="DatePattern" value="'.'yyyy-MM-dd'.log'" />
+		<param name="File" value="/logs/photon-runner.log" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d [%t] %-5p %c %x - %m%n" />
+		</layout>
+	</appender>
+
+	<!-- Logger levels -->
+	<logger name="com.tomtom">
+		<level value="INFO" />
+	</logger>
+
+	<!-- Root logger -->
+	<root>
+		<level value="INFO" />
+		<appender-ref ref="R"/>
+		<appender-ref ref="A1"/>
+	</root>
+
+</log4j:configuration>
