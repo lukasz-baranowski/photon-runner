@@ -62,11 +62,11 @@
 			<version>16.0.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-		</dependency>
+<!-- 		<dependenCY> -->
+<!-- 			<GROUPID>LOG4J</GROUPID> -->
+<!-- 			<ARTIFACTID>LOG4J</ARTIFACTID> -->
+<!-- 			<VERSION>1.2.16</VERSION> -->
+<!-- 		</DEPENDENCy> -->
 
 		<dependency>
 			<artifactId>slf4j-api</artifactId>
@@ -85,7 +85,7 @@
 		    <artifactId>zone-maker</artifactId>
 		    <version>0.1</version>
 		    <scope>system</scope>
-		    <systemPath>${project.basedir}/conf/zone-maker-0.1.jar</systemPath>
+		    <systemPath>${project.basedir}/lib/zone-maker-0.1.jar</systemPath>
 		</dependency>
 
 <!-- 		<dependency> -->
