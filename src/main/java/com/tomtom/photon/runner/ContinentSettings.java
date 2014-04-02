@@ -1,15 +1,12 @@
 package com.tomtom.photon.runner;
 
-import java.util.List;
 import java.util.UUID;
-
-import com.google.common.collect.Lists;
 
 /**
  * Continent setting to run photon-converter
  * 
  * Sample format of continents.cfg:
- * RWR;13.10;562a90ee-fe27-40ef-ad1a-01463bf45662:1000000;AS_,AF_,AN_,SA_,OC_,EU_;
+ * RWR;13.10;562a90ee-fe27-40ef-ad1a-01463bf45662:1000000
  * 
  * @author baranows
  */
@@ -17,8 +14,7 @@ public class ContinentSettings {
     private final String name;
     private final String version;
     private final UUID branch;
-    private final Long transactionVersion;
-    private final List<String> countries;
+    private final Long journalVersion;
 
     public static ContinentSettings build(String line) {
         Builder builder = ContinentSettings.builder();
@@ -28,9 +24,8 @@ public class ContinentSettings {
 
         String [] branchAndVersion = args[2].split(":");
         builder.branch(branchAndVersion[0]);
-        builder.transactionVersion(branchAndVersion[1]);
+        builder.journalVersion(branchAndVersion[1]);
 
-        builder.countries(args[3]);
         return builder.build();
     }
     
@@ -42,16 +37,14 @@ public class ContinentSettings {
         this.name = builder.name;
         this.version = builder.version;
         this.branch = builder.branch;
-        this.transactionVersion = builder.transactionVersion;
-        this.countries = builder.countries;
+        this.journalVersion = builder.journalVersion;
     }
-    
+
     public static class Builder {
         private String name;
         private String version;
         private UUID branch;
-        private Long transactionVersion;
-        private List<String> countries;
+        private Long journalVersion;
 
         public Builder name(final String name) {
             this.name = name.toUpperCase();
@@ -68,13 +61,8 @@ public class ContinentSettings {
             return this;
         }
 
-        public Builder transactionVersion(final String transactionVersion) {
-            this.transactionVersion = Long.valueOf(transactionVersion);
-            return this;
-        }
-        public Builder countries(final String countries) {
-            String [] countriesTab = countries.split(",");
-            this.countries = Lists.newArrayList(countriesTab);
+        public Builder journalVersion(final String journalVersion) {
+            this.journalVersion = Long.valueOf(journalVersion);
             return this;
         }
 
@@ -95,16 +83,12 @@ public class ContinentSettings {
         return branch;
     }
     
-    public Long getTransactionVersion() {
-        return transactionVersion;
-    }
-    
-    public List<String> getCountries() {
-        return countries;
+    public Long getJournalVersion() {
+        return journalVersion;
     }
 
     public String getBranchAndVersion() {
-        return branch.toString() + ":" + transactionVersion.toString();
+        return branch.toString() + ":" + journalVersion.toString();
     }
 
 }

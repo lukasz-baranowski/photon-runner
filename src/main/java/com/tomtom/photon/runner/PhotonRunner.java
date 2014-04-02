@@ -20,9 +20,9 @@ import com.teleatlas.global.common.cli.AbstractArgs4jTool;
 public class PhotonRunner extends AbstractArgs4jTool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PhotonRunner.class);
 
-	public static String FETCHED_DIR = "fetched";
-	public static String SENT_DIR = "sent";
-	public static String DONE_DIR = "done";
+	public static final String FETCHED_DIR = "fetched";
+	public static final String SENT_DIR = "sent";
+	public static final String DONE_DIR = "done";
 
 	@Option(name = "--continents", usage = "Sets continents config file", aliases = "-c", required = true)
 	private File continentsFile;
@@ -54,12 +54,13 @@ public class PhotonRunner extends AbstractArgs4jTool {
 				throw new IllegalArgumentException("No such file: " + this.continentsFile.getAbsolutePath());
 			}
 			final List<ContinentSettings> continents = readConfig(this.continentsFile);
+			final ZoneMakerConf zoneMakerConf = ZoneMakerConf.valueOf(this.out, this.countryConfig, this.accessPointWs, this.zoningService);
 
 			ExecutorService pool = Executors.newFixedThreadPool(3);
 
-			FetchRunner fetchTask = new FetchRunner(continents, this.out, this.countryConfig, this.accessPointWs, this.zoningService);
+			FetchRunner fetchTask = new FetchRunner(continents, zoneMakerConf);
 			pool.submit(fetchTask);
-			pool.submit(new SendRunner(this.out,this.zoningService,fetchTask));
+            pool.submit(new SendRunner(zoneMakerConf, fetchTask));
 			// fetch(ZoneMakerMode.SEND, continents);
 
 			// runPhoton(continents);
@@ -71,10 +72,8 @@ public class PhotonRunner extends AbstractArgs4jTool {
 
 	private void runPhoton(List<ContinentSettings> continents) throws IOException {
 		for (ContinentSettings con : continents) {
-			for (String country : con.getCountries()) {
-				final String command = createPhotonCommand(con, country);
-				runCommand(command);
-			}
+//				final String command = createPhotonCommand(con, country);
+//				runCommand(command);
 		}
 	}
 
@@ -124,7 +123,7 @@ public class PhotonRunner extends AbstractArgs4jTool {
 	}
 
 	private void log(String log) {
-		LOGGER.debug(log);
+		LOGGER.info(log);
 	}
 
     private void log(Exception e) {
