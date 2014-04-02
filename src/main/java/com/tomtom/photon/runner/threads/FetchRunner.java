@@ -49,7 +49,7 @@ public class FetchRunner implements Callable<Void> {
             final File continentFetchOut = prepareFileSystem(con);
 
 			LOGGER.info("Fetch: " + con.getName());
-			File doneMarker = new File(continentFetchOut, con.getName() + ".done");
+			File doneMarker = new File(continentFetchOut, con.getName()+".done");
 			if (doneMarker.exists()) {
 				LOGGER.info("Already fetched skipping.");
 				continue;

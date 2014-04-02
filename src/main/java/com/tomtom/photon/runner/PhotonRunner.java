@@ -71,6 +71,7 @@ public class PhotonRunner extends AbstractArgs4jTool {
             pool.submit(hadoopTask);
             pool.submit(hadoopTask);
 
+            pool.shutdown();
 			pool.awaitTermination(365, TimeUnit.DAYS);
 		} catch (Exception e) {
 			log(e);

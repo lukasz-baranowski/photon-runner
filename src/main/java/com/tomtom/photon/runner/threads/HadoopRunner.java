@@ -52,6 +52,7 @@ public class HadoopRunner implements Callable<Void> {
 
 
 			if (sendTask.finished && !datasetToProcess.isPresent()) {
+				LOGGER.info("Finished");
 				break;
 			}
 			if (datasetToProcess.isPresent()) {

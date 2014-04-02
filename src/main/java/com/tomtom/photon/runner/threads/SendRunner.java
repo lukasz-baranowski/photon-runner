@@ -37,7 +37,7 @@ public class SendRunner implements Callable<Void> {
 		zoneMakerConf = zoneMakerCnf;
 		fetchOut = new File(zoneMakerCnf.getOut(), PhotonRunner.FETCHED_DIR);
 		sentOut = new File(zoneMakerCnf.getOut(), PhotonRunner.SENT_DIR);
-		staging = new File(zoneMakerCnf.getOut(),"tmp");
+		staging = new File(zoneMakerCnf.getOut(), "tmp");
 		sentOut.mkdirs();
 		staging.mkdirs();
 		this.fetchTask = fetchTask;
@@ -63,21 +63,21 @@ public class SendRunner implements Callable<Void> {
 			if (fetchTask.finished && !nextFileToSend.isPresent()) {
 				break;
 			}
-			
+
 			if (nextFileToSend.isPresent()) {
 				File file = nextFileToSend.get();
 				File toBeSent = moveJsonFileFromFetchedToBeSent(file);
 				File doneMarker = new File(file.getAbsolutePath() + ".done");
 				if (!doneMarker.exists()) {
 					String name = file.getName();
-					Params p = createParamsFile(file.getParentFile(),name);
+					Params p = createParamsFile(file.getParentFile(), name);
 					LOGGER.info("Sending " + name);
 					// runZoneMaker(p);
 					LOGGER.info("Sent to zoning " + name);
-					moveJsonFileFromStagingToSent(file,toBeSent);
+					moveJsonFileFromStagingToSent(file, toBeSent);
 					doneMarker.createNewFile();
 				}
-			}else {
+			} else {
 				TimeUnit.SECONDS.sleep(2);
 			}
 
@@ -86,12 +86,12 @@ public class SendRunner implements Callable<Void> {
 	}
 
 	private void moveJsonFileFromStagingToSent(File file, File toBeSent) {
-		File destDir = new File(sentOut,file.getParentFile().getName());
-		toBeSent.renameTo(new File(destDir,toBeSent.getName()));
+		File destDir = new File(sentOut, file.getParentFile().getName());
+		toBeSent.renameTo(new File(destDir, toBeSent.getName()));
 	}
 
 	private File moveJsonFileFromFetchedToBeSent(File nextFileToSend) {
-		File dest = new File(staging,nextFileToSend.getName());
+		File dest = new File(staging, nextFileToSend.getName());
 		IOUtil.rmDir(staging);
 		staging.mkdirs();
 		nextFileToSend.renameTo(dest);
@@ -100,9 +100,11 @@ public class SendRunner implements Callable<Void> {
 
 	private Optional<File> getNextFileToSend() throws IOException {
 		for (File continentFetchOut : fetchOut.listFiles()) {
-			Optional<File> fileToSend = getNextFileToSend(continentFetchOut);
-			if (fileToSend.isPresent()) {
-				return fileToSend;
+			if (continentFetchOut.exists() && continentFetchOut.isDirectory()) {
+				Optional<File> fileToSend = getNextFileToSend(continentFetchOut);
+				if (fileToSend.isPresent()) {
+					return fileToSend;
+				}
 			}
 		}
 		return Optional.absent();
@@ -125,7 +127,6 @@ public class SendRunner implements Callable<Void> {
 			Files.copy(properties, copied);
 		}
 	}
-
 
 	private void runZoneMaker(Params p) {
 		ZoneMaker zm = new ZoneMaker(p);
