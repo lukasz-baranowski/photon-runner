@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.teleatlas.global.common.cli.AbstractArgs4jTool;
-import com.teleatlas.global.common.cli.ToolExecutionException;
 
 public class PhotonRunner extends AbstractArgs4jTool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PhotonRunner.class);
@@ -49,10 +48,8 @@ public class PhotonRunner extends AbstractArgs4jTool {
 	@Option(name = "--jobConfig", usage = "Sets job-config.xml file", aliases = "-jc", required = true)
 	private String jobConfig;
 
-	// Main method
-	public void run() throws IOException {
+	public void run() {
 		try {
-
 			if (!continentsFile.exists()) {
 				throw new IllegalArgumentException("No such file: " + this.continentsFile.getAbsolutePath());
 			}
@@ -68,7 +65,7 @@ public class PhotonRunner extends AbstractArgs4jTool {
 			// runPhoton(continents);
 			pool.awaitTermination(365, TimeUnit.DAYS);
 		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
+			log(e);
 		}
 	}
 
@@ -96,7 +93,6 @@ public class PhotonRunner extends AbstractArgs4jTool {
 		return photon.toString();
 	}
 
-	@SuppressWarnings("unused")
 	private void runCommand(String command) throws IOException {
 		log("Running command: " + command);
 		ProcessBuilder builder = new ProcessBuilder(command);
@@ -106,15 +102,8 @@ public class PhotonRunner extends AbstractArgs4jTool {
 			InputStream in = process.getInputStream();
 			InputStream err = process.getErrorStream();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		    log(e);
 		}
-		// Process proc = Runtime.getRuntime().exec(command);
-		// int res = proc.exitValue();
-		// log("" + res);
-		// Then retreive the process output
-		// InputStream in = proc.getInputStream();
-		// InputStream err = proc.getErrorStream();
 	}
 
 	private List<ContinentSettings> readConfig(File config) throws IOException {
@@ -135,9 +124,12 @@ public class PhotonRunner extends AbstractArgs4jTool {
 	}
 
 	private void log(String log) {
-		System.out.println(log);
 		LOGGER.debug(log);
 	}
+
+    private void log(Exception e) {
+        LOGGER.error(e.getMessage(), e);
+    }
 
 	@Override
 	public String getName() {
@@ -145,12 +137,8 @@ public class PhotonRunner extends AbstractArgs4jTool {
 	}
 
 	@Override
-	public void execute() throws ToolExecutionException {
-		try {
+	public void execute() {
 			run();
-		} catch (IOException e) {
-			throw new ToolExecutionException(e.getMessage(), e);
-		}
 	}
 
 }
