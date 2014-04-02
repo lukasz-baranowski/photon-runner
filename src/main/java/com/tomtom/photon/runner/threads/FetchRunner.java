@@ -35,8 +35,11 @@ public class FetchRunner implements Callable<Void> {
 	public Void call() throws Exception {
         try {
             fetch();
+			LOGGER.info("Finished");
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
+        }finally {
+        	finished = true;
         }
 		return null;
 	}
@@ -56,8 +59,7 @@ public class FetchRunner implements Callable<Void> {
 			doneMarker.createNewFile();
 			LOGGER.info("Done: " + con.getName());
 		}
-		finished = true;
-		LOGGER.info("Finished");
+		
 	}
 
 	private File prepareFileSystem(ContinentSettings con) {

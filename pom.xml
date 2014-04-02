@@ -69,33 +69,39 @@
 		</dependency>
 
 		<dependency>
-		    <groupId>com.tomtom.photon</groupId>
-		    <artifactId>zone-maker</artifactId>
-		    <version>0.1</version>
-		    <scope>system</scope>
-		    <systemPath>${project.basedir}/lib/zone-maker-0.1.jar</systemPath>
+			<groupId>log4j</groupId>
+			<artifactId>apache-log4j-extras</artifactId>
+			<version>1.2.17</version>
 		</dependency>
 
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.tomtom.photon</groupId> -->
-<!-- 			<artifactId>zone-maker</artifactId> -->
-<!-- 			<version>0.1</version> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.tomtom.photon</groupId>
+			<artifactId>zone-maker</artifactId>
+			<version>0.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/zone-maker-0.1.jar</systemPath>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>com.tomtom.photon</groupId> -->
+		<!-- <artifactId>zone-maker</artifactId> -->
+		<!-- <version>0.1</version> -->
+		<!-- </dependency> -->
 
 
-<!-- 		<dependency> -->
-<!-- 		  <groupId>com.tomtom.photon</groupId> -->
-<!-- 		  <artifactId>photon-converter</artifactId> -->
-<!-- 		  <version>0.1-SNAPSHOT</version> -->
-<!-- 		  <classifier>job</classifier> -->
-<!-- 		</dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>com.tomtom.photon</groupId> -->
+		<!-- <artifactId>photon-converter</artifactId> -->
+		<!-- <version>0.1-SNAPSHOT</version> -->
+		<!-- <classifier>job</classifier> -->
+		<!-- </dependency> -->
 
 		<dependency>
-		  <groupId>com.tomtom.photon</groupId>
-		  <artifactId>photon-converter</artifactId>
-		  <version>0.1-SNAPSHOT</version>
-		  <scope>system</scope>
-		  <systemPath>${project.basedir}/lib/photon-converter-0.1-20140331.111951-5-job.jar</systemPath>
+			<groupId>com.tomtom.photon</groupId>
+			<artifactId>photon-converter</artifactId>
+			<version>0.1-SNAPSHOT</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/photon-converter-0.1-20140331.111951-5-job.jar</systemPath>
 		</dependency>
 
 	</dependencies>

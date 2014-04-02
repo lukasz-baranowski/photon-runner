@@ -60,13 +60,15 @@ public class PhotonRunner extends AbstractArgs4jTool {
 			final List<ContinentSettings> continents = readConfig(this.continentsFile);
 			final ZoneMakerConf zoneMakerConf = ZoneMakerConf.valueOf(this.out, this.countryConfig, this.accessPointWs, this.zoningService);
 
-			ExecutorService pool = Executors.newFixedThreadPool(3);
+			ExecutorService pool = Executors.newFixedThreadPool(5);
 
 			FetchRunner fetchTask = new FetchRunner(continents, zoneMakerConf);
 			SendRunner sendTask = new SendRunner(zoneMakerConf, fetchTask);
 			HadoopRunner hadoopTask = new HadoopRunner(this.out, sendTask);
 			pool.submit(fetchTask);
             pool.submit(sendTask);
+            pool.submit(hadoopTask);
+            pool.submit(hadoopTask);
             pool.submit(hadoopTask);
 
 			pool.awaitTermination(365, TimeUnit.DAYS);
