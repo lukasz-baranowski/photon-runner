@@ -6,15 +6,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.tomtom.photon.runner.PhotonRunner;
 import com.tomtom.photon.runner.conf.ContinentSettings;
 
@@ -26,7 +28,9 @@ public class HadoopRunner implements Callable<Void> {
 	private final File sentOut;
 	private final File hadoopOut;
 
-	private final ReentrantReadWriteLock sharedLock = new ReentrantReadWriteLock();
+	private final Set<String> currentlyProcessed = Sets.<String> newHashSet();
+
+	private final Semaphore s = new Semaphore(1);
 
 	public HadoopRunner(final String out, final SendRunner sendTask) {
 		this.sentOut = new File(out, PhotonRunner.SENT_DIR);
@@ -45,11 +49,10 @@ public class HadoopRunner implements Callable<Void> {
 		return null;
 	}
 
-	private void runTask() throws Exception {
+	private void runTask() throws IOException, InterruptedException {
 		while (true) {
 
 			Optional<File> datasetToProcess = getNextDatasetToProcess();
-
 
 			if (sendTask.finished && !datasetToProcess.isPresent()) {
 				LOGGER.info("Finished");
@@ -58,33 +61,42 @@ public class HadoopRunner implements Callable<Void> {
 			if (datasetToProcess.isPresent()) {
 				String name = getName(datasetToProcess.get());
 				LOGGER.info("About to run on hadoop " + name);
-				
+
 				runPhotonConverter();
+
+				s.acquire();
+				try {
+					currentlyProcessed.remove(name);
+				} finally {
+					s.release();
+				}
+				File doneMarker = new File(datasetToProcess.get().getAbsolutePath() + ".done");
+				doneMarker.createNewFile();
 				LOGGER.info("Done on hadoop " + name);
 
-			}else {
+			} else {
 				TimeUnit.SECONDS.sleep(10);
 			}
 		}
 	}
 
-	private Optional<File> getNextDatasetToProcess() throws IOException {
-		sharedLock.writeLock().lock();
+	private Optional<File> getNextDatasetToProcess() throws IOException, InterruptedException {
+		s.acquire();
 		try {
 			for (File continentSentOut : sentOut.listFiles()) {
 				List<File> toProcessList = getFilesToProcess(continentSentOut);
 				for (File toProcess : toProcessList) {
 					File doneMarker = new File(toProcess.getAbsolutePath() + ".done");
-					if (!doneMarker.exists()) {
-						doneMarker.createNewFile();
+					if (!doneMarker.exists() && !currentlyProcessed.contains(toProcess.getName())) {
+						currentlyProcessed.add(toProcess.getName());
 						return Optional.of(toProcess);
 					}
 				}
 			}
-			return Optional.absent();
 		} finally {
-			sharedLock.writeLock().unlock();
+			s.release();
 		}
+		return Optional.absent();
 	}
 
 	private String getName(File toProcess) {
@@ -95,7 +107,12 @@ public class HadoopRunner implements Callable<Void> {
 		File[] toProcess = directory.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				if (name.endsWith(".json") && !name.startsWith("$")) { //countries only - $ are no countries
+				if (name.endsWith(".json") && !name.startsWith("$")) { // countries
+																		// only
+																		// - $
+																		// are
+																		// no
+																		// countries
 					return true;
 				}
 				return false;

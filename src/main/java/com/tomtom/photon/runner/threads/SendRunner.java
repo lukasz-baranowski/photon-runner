@@ -87,6 +87,7 @@ public class SendRunner implements Callable<Void> {
 
 	private void moveJsonFileFromStagingToSent(File file, File toBeSent) {
 		File destDir = new File(sentOut, file.getParentFile().getName());
+		destDir.mkdirs();
 		toBeSent.renameTo(new File(destDir, toBeSent.getName()));
 	}
 
