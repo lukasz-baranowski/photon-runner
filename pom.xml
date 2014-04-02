@@ -62,18 +62,11 @@
 			<version>16.0.1</version>
 		</dependency>
 
-<!-- 		<dependenCY> -->
-<!-- 			<GROUPID>LOG4J</GROUPID> -->
-<!-- 			<ARTIFACTID>LOG4J</ARTIFACTID> -->
-<!-- 			<VERSION>1.2.16</VERSION> -->
-<!-- 		</DEPENDENCy> -->
-
 		<dependency>
 			<artifactId>slf4j-api</artifactId>
 			<groupId>org.slf4j</groupId>
 			<version>1.7.6</version>
 		</dependency>
-
 
 		<dependency>
 		    <groupId>com.tomtom.photon</groupId>
@@ -88,6 +81,23 @@
 <!-- 			<artifactId>zone-maker</artifactId> -->
 <!-- 			<version>0.1</version> -->
 <!-- 		</dependency> -->
+
+
+<!-- 		<dependency> -->
+<!-- 		  <groupId>com.tomtom.photon</groupId> -->
+<!-- 		  <artifactId>photon-converter</artifactId> -->
+<!-- 		  <version>0.1-SNAPSHOT</version> -->
+<!-- 		  <classifier>job</classifier> -->
+<!-- 		</dependency> -->
+
+		<dependency>
+		  <groupId>com.tomtom.photon</groupId>
+		  <artifactId>photon-converter</artifactId>
+		  <version>0.1-SNAPSHOT</version>
+		  <scope>system</scope>
+		  <systemPath>${project.basedir}/lib/photon-converter-0.1-20140331.111951-5-job.jar</systemPath>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<resources>

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import junit.framework.TestCase;
 
-import com.tomtom.photon.runner.ContinentSettings;
+import com.tomtom.photon.runner.conf.ContinentSettings;
 
 
 public class ContinentSettingsBuilderTest extends TestCase {

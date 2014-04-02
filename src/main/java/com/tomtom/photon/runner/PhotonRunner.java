@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,6 +15,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.teleatlas.global.common.cli.AbstractArgs4jTool;
+import com.tomtom.photon.runner.conf.ContinentSettings;
+import com.tomtom.photon.runner.conf.ZoneMakerConf;
+import com.tomtom.photon.runner.threads.FetchRunner;
+import com.tomtom.photon.runner.threads.HadoopRunner;
+import com.tomtom.photon.runner.threads.SendRunner;
 
 public class PhotonRunner extends AbstractArgs4jTool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PhotonRunner.class);
@@ -59,49 +63,15 @@ public class PhotonRunner extends AbstractArgs4jTool {
 			ExecutorService pool = Executors.newFixedThreadPool(3);
 
 			FetchRunner fetchTask = new FetchRunner(continents, zoneMakerConf);
+			SendRunner sendTask = new SendRunner(zoneMakerConf, fetchTask);
+			HadoopRunner hadoopTask = new HadoopRunner(this.out, sendTask);
 			pool.submit(fetchTask);
-            pool.submit(new SendRunner(zoneMakerConf, fetchTask));
-			// fetch(ZoneMakerMode.SEND, continents);
+            pool.submit(sendTask);
+            pool.submit(hadoopTask);
 
-			// runPhoton(continents);
 			pool.awaitTermination(365, TimeUnit.DAYS);
 		} catch (Exception e) {
 			log(e);
-		}
-	}
-
-	private void runPhoton(List<ContinentSettings> continents) throws IOException {
-		for (ContinentSettings con : continents) {
-//				final String command = createPhotonCommand(con, country);
-//				runCommand(command);
-		}
-	}
-
-	private String createPhotonCommand(ContinentSettings con, String country) {
-		final StringBuilder photon = new StringBuilder();
-		photon.append("hadoop ");
-		photon.append(" --config ").append(this.hadoopConfig);
-		photon.append(" --jar ").append(this.photonConverterJar);
-		photon.append(" --model ").append("ttomshp");
-		photon.append(" --type ").append("CUSTOM");
-		photon.append(" --zone ").append(country);
-		photon.append(" --version ").append(con.getVersion());
-		photon.append(" --format ").append("SHP");
-		photon.append(" --jobConfig ").append(this.jobConfig);
-		photon.append(" --branchAndVersion ").append(con.getBranchAndVersion());
-		return photon.toString();
-	}
-
-	private void runCommand(String command) throws IOException {
-		log("Running command: " + command);
-		ProcessBuilder builder = new ProcessBuilder(command);
-		Process process;
-		try {
-			process = builder.start();
-			InputStream in = process.getInputStream();
-			InputStream err = process.getErrorStream();
-		} catch (Exception e) {
-		    log(e);
 		}
 	}
 
