@@ -163,6 +163,9 @@
 <!-- 							Add the conf dir to the classpath -->
 <!-- 							<Class-Path>conf/</Class-Path> -->
 <!-- 						</manifestEntries> -->
+						<manifestEntries>
+							<Class-Path>lib/photon-converter-0.1-20140331.111951-5-job.jar lib/zone-maker-0.1.jar</Class-Path>
+						</manifestEntries>
 						<manifest>
 							<mainClass>com.teleatlas.global.common.cli.CLI </mainClass>
 							<addClasspath>true</addClasspath>

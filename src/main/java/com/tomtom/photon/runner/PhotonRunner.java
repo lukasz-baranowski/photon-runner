@@ -66,8 +66,8 @@ public class PhotonRunner extends AbstractArgs4jTool {
 			SendRunner sendTask = new SendRunner(zoneMakerConf, fetchTask);
 			HadoopRunner hadoopTask = new HadoopRunner(this.out, this.hadoopConfig, this.jobConfig, this.photonConverterJar, sendTask);
 			pool.submit(fetchTask);
-//            pool.submit(sendTask);
-//            pool.submit(hadoopTask);
+            pool.submit(sendTask);
+            pool.submit(hadoopTask);
 //            pool.submit(hadoopTask);
 //            pool.submit(hadoopTask);
 
