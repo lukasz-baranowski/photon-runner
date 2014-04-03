@@ -85,10 +85,11 @@ public class SendRunner implements Callable<Void> {
 		LOGGER.info("Finished");
 	}
 
-	private void moveJsonFileFromStagingToSent(File file, File toBeSent) {
+	private void moveJsonFileFromStagingToSent(File file, File toBeSent) throws IOException {
 		File destDir = new File(sentOut, file.getParentFile().getName());
 		destDir.mkdirs();
 		toBeSent.renameTo(new File(destDir, toBeSent.getName()));
+		copyPropertiesFile(file.getParentFile());
 	}
 
 	private File moveJsonFileFromFetchedToBeSent(File nextFileToSend) {
@@ -115,12 +116,13 @@ public class SendRunner implements Callable<Void> {
 		File continentSentOut = new File(sentOut, continentFetchOut.getName());
 		if (!continentSentOut.exists()) {
 			continentSentOut.mkdirs();
-			copyPropertiesFile(continentFetchOut, continentSentOut);
+			copyPropertiesFile(continentFetchOut);
 		}
 		return continentSentOut;
 	}
 
-	private void copyPropertiesFile(File continentFetchOut, File continentSentOut) throws IOException {
+	private void copyPropertiesFile(File continentFetchOut) throws IOException {
+	    File continentSentOut = new File(sentOut, continentFetchOut.getName());
 		File properties = new File(continentFetchOut, "$_$" + continentFetchOut.getName() + ".properties");
 		File copied = new File(continentSentOut, properties.getName());
 		if (!copied.exists()) {
@@ -138,7 +140,7 @@ public class SendRunner implements Callable<Void> {
 		File[] files = directory.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				if (name.endsWith(".json")) {
+				if (name.endsWith(".json") && !name.startsWith("$")) {
 					return true;
 				}
 				return false;
