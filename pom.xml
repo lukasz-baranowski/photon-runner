@@ -7,9 +7,6 @@
 	<packaging>jar</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>photon-runner</name>
-	<properties>
-		<executableDirectory>/usr/share/java</executableDirectory>
-	</properties>
 
 	<profiles>
 		<profile>
@@ -41,6 +38,12 @@
 			<groupId>com.teleatlas.global</groupId>
 			<artifactId>common-cli</artifactId>
 			<version>2.2</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>log4j</artifactId>
+					<groupId>log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -63,15 +66,15 @@
 		</dependency>
 
 		<dependency>
-			<artifactId>slf4j-api</artifactId>
-			<groupId>org.slf4j</groupId>
-			<version>1.7.6</version>
-		</dependency>
-
-		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>apache-log4j-extras</artifactId>
 			<version>1.2.17</version>
+		</dependency>
+
+		<dependency>
+			<artifactId>slf4j-api</artifactId>
+			<groupId>org.slf4j</groupId>
+			<version>1.7.6</version>
 		</dependency>
 
 		<dependency>
@@ -87,7 +90,6 @@
 		<!-- <artifactId>zone-maker</artifactId> -->
 		<!-- <version>0.1</version> -->
 		<!-- </dependency> -->
-
 
 		<!-- <dependency> -->
 		<!-- <groupId>com.tomtom.photon</groupId> -->
@@ -157,12 +159,12 @@
 						<exclude>log4j.xml</exclude>
 					</excludes>
 					<archive>
-						<manifestEntries>
-							<!-- Add the conf dir to the classpath -->
-							<Class-Path>conf/</Class-Path>
-						</manifestEntries>
+<!-- 						<manifestEntries> -->
+<!-- 							Add the conf dir to the classpath -->
+<!-- 							<Class-Path>conf/</Class-Path> -->
+<!-- 						</manifestEntries> -->
 						<manifest>
-							<mainClass>com.teleatlas.global.common.cli.CLI</mainClass>
+							<mainClass>com.teleatlas.global.common.cli.CLI </mainClass>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
