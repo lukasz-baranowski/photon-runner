@@ -79,7 +79,6 @@ public class FetchRunner implements Callable<Void> {
     private Params createParams(File continentfetchOut, ContinentSettings con) {
         Params p = zoneMakerConf.createBasicParams(Params.WORK_MODE.FETCH);
         p.setOutputDir(continentfetchOut.getAbsolutePath());
-        //p.setJournalVersion(con.getJournalVersion());
         p.setRegionName(con.getName());
         p.setRegionVersion(con.getVersion());
         if (ZoneMakerConf.ADM_MODE_CONTINENTS.contains(con.getName())) {
@@ -95,6 +94,7 @@ public class FetchRunner implements Callable<Void> {
             props.setProperty("version", con.getVersion());
             props.setProperty("branch", "" + con.getBranch());
             props.setProperty("journalVersion", "" + con.getJournalVersion());
+            props.setProperty("branchAndVersion", "" + con.getBranchAndVersion());
             File f = new File(continentfetchOut, "$_$" + con.getName() + ".properties");
             OutputStream out = new FileOutputStream(f);
             props.store(out, "Continent settings");

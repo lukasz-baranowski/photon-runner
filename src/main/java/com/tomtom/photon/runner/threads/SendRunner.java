@@ -72,7 +72,7 @@ public class SendRunner implements Callable<Void> {
 					String name = file.getName();
 					Params p = createParamsFile(file.getParentFile(), name);
 					LOGGER.info("Sending " + name);
-					// runZoneMaker(p);
+					runZoneMaker(p);
 					LOGGER.info("Sent to zoning " + name);
 					moveJsonFileFromStagingToSent(file, toBeSent);
 					doneMarker.createNewFile();
@@ -112,15 +112,6 @@ public class SendRunner implements Callable<Void> {
 		return Optional.absent();
 	}
 
-	private File prepareFileSystem(File continentFetchOut) throws IOException {
-		File continentSentOut = new File(sentOut, continentFetchOut.getName());
-		if (!continentSentOut.exists()) {
-			continentSentOut.mkdirs();
-			copyPropertiesFile(continentFetchOut);
-		}
-		return continentSentOut;
-	}
-
 	private void copyPropertiesFile(File continentFetchOut) throws IOException {
 	    File continentSentOut = new File(sentOut, continentFetchOut.getName());
 		File properties = new File(continentFetchOut, "$_$" + continentFetchOut.getName() + ".properties");
@@ -156,9 +147,8 @@ public class SendRunner implements Callable<Void> {
 
 	private Params createParamsFile(File continentSentDir, String name) {
 		Params p = zoneMakerConf.createBasicParams(Params.WORK_MODE.SEND);
-		Properties props = readPropertiesFile(continentSentDir);
+		Properties props = SendRunner.readPropertiesFile(continentSentDir);
 		p.setOutputDir(staging.getAbsolutePath());
-		// p.setJournalVersion(props.getProperty("journalVersion"));
 		p.setRegionName(props.getProperty("name"));
 		p.setRegionVersion(props.getProperty("version"));
 		if (ZoneMakerConf.ADM_MODE_CONTINENTS.contains(props.getProperty("name", ""))) {
@@ -167,7 +157,7 @@ public class SendRunner implements Callable<Void> {
 		return p;
 	}
 
-	private Properties readPropertiesFile(File continentSentDir) {
+	public static Properties readPropertiesFile(File continentSentDir) {
 		final String continentName = continentSentDir.getName();
 		final Properties props = new Properties();
 		try {

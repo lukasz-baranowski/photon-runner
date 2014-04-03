@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
@@ -18,7 +19,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.tomtom.photon.runner.PhotonRunner;
-import com.tomtom.photon.runner.conf.ContinentSettings;
 
 public class HadoopRunner implements Callable<Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HadoopRunner.class);
@@ -26,20 +26,24 @@ public class HadoopRunner implements Callable<Void> {
 	private final SendRunner sendTask;
 
 	private final File sentOut;
-	private final File hadoopOut;
+
+	private final String hadoopConfig;
+	private final String jobConfig;
+	private final String photonConverterJar;
 
 	private final Set<String> currentlyProcessed = Sets.<String> newHashSet();
 
 	private final Semaphore s = new Semaphore(1);
 
-	public HadoopRunner(final String out, final SendRunner sendTask) {
-		this.sentOut = new File(out, PhotonRunner.SENT_DIR);
-		this.hadoopOut = new File(out, PhotonRunner.DONE_DIR);
-		hadoopOut.mkdirs();
-		this.sendTask = sendTask;
-	}
+	public HadoopRunner(String out, String hadoopConfig, String jobConfig, String photonConverterJar, SendRunner sendTask) {
+        this.sentOut = new File(out, PhotonRunner.SENT_DIR);
+        this.sendTask = sendTask;
+        this.hadoopConfig = hadoopConfig;
+        this.jobConfig = jobConfig;
+        this.photonConverterJar = photonConverterJar;
+    }
 
-	@Override
+    @Override
 	public Void call() throws Exception {
 		try {
 			runTask();
@@ -59,10 +63,11 @@ public class HadoopRunner implements Callable<Void> {
 				break;
 			}
 			if (datasetToProcess.isPresent()) {
-				String name = getName(datasetToProcess.get());
+			    File datasetToProcessFile = datasetToProcess.get();
+				String name = getName(datasetToProcessFile);
 				LOGGER.info("About to run on hadoop " + name);
 
-				runPhotonConverter();
+				runPhotonConverter(datasetToProcessFile, name);
 
 				s.acquire();
 				try {
@@ -70,7 +75,7 @@ public class HadoopRunner implements Callable<Void> {
 				} finally {
 					s.release();
 				}
-				File doneMarker = new File(datasetToProcess.get().getAbsolutePath() + ".done");
+				File doneMarker = new File(datasetToProcessFile.getAbsolutePath() + ".done");
 				doneMarker.createNewFile();
 				LOGGER.info("Done on hadoop " + name);
 
@@ -125,34 +130,39 @@ public class HadoopRunner implements Callable<Void> {
 		}
 	}
 
-	private void runPhotonConverter() throws InterruptedException {
-		LOGGER.info("Running hadoop...");
-		TimeUnit.SECONDS.sleep(2);
+	private void runPhotonConverter(File datasetToProcessFile, String name) throws InterruptedException, IOException {
+	    final Properties props = SendRunner.readPropertiesFile(datasetToProcessFile.getParentFile());
+	    final String command = createPhotonCommand(props, name);
+	    LOGGER.info("Running hadoop...");
+	    LOGGER.info(command);
+	    runCommand(command);
 	}
 
-	private String createPhotonCommand(ContinentSettings con, String country) {
-		final StringBuilder photon = new StringBuilder();
-		photon.append("hadoop ");
-		// photon.append(" --config ").append(this.hadoopConfig);
-		// photon.append(" --jar ").append(this.photonConverterJar);
-		// photon.append(" --model ").append("ttomshp");
-		// photon.append(" --type ").append("CUSTOM");
-		// photon.append(" --zone ").append(country);
-		// photon.append(" --version ").append(con.getVersion());
-		// photon.append(" --format ").append("SHP");
-		// photon.append(" --jobConfig ").append(this.jobConfig);
-		photon.append(" --branchAndVersion ").append(con.getBranchAndVersion());
-		return photon.toString();
-	}
+    private String createPhotonCommand(Properties props, String name) {
+        final StringBuilder photon = new StringBuilder();
+        photon.append("hadoop ");
+        photon.append(" --config ").append(this.hadoopConfig);
+        photon.append(" --jar ").append(this.photonConverterJar);
+        photon.append(" --model ").append("ttomshp");
+        photon.append(" --type ").append("CUSTOM");
+        photon.append(" --zone ").append(name);
+        photon.append(" --version ").append(props.getProperty("version"));
+        photon.append(" --format ").append("SHP");
+        photon.append(" --jobConfig ").append(this.jobConfig);
+        photon.append(" --branchAndVersion ").append(props.getProperty("branchAndVersion"));
+        return photon.toString();
+    }
 
-	private void runCommand(String command) throws IOException {
-		LOGGER.info("Running command: " + command);
+	@SuppressWarnings("unused")
+    private void runCommand(String command) throws IOException {
+		LOGGER.info(command);
 		ProcessBuilder builder = new ProcessBuilder(command);
 		Process process;
 		try {
 			process = builder.start();
 			InputStream in = process.getInputStream();
 			InputStream err = process.getErrorStream();
+			int res = process.waitFor();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 		}
