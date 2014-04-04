@@ -146,7 +146,15 @@ public class SendRunner implements Callable<Void> {
 
 	private void runZoneMaker(Params p) {
 		ZoneMaker zm = new ZoneMaker(p);
-		zm.run();
+		try {
+			zm.run();
+		} catch (RuntimeException e) {
+			if (e.getMessage().contains("504 Gateway Time-out")) {
+				LOGGER.warn("Timeout on Zoning...", e);
+			} else {
+				throw e;
+			}
+		}
 	}
 
 	private Optional<File> getNextFileToSend(File directory) {
