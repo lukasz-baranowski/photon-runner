@@ -30,6 +30,7 @@ public class HadoopRunner implements Callable<Void> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HadoopRunner.class);
 
+    private final String wbmOUT = "output/wbm_rio/";
     private final SendRunner sendTask;
 
     private final File sentOut;
@@ -42,12 +43,16 @@ public class HadoopRunner implements Callable<Void> {
 
     private final Semaphore s = new Semaphore(1);
 
-    public HadoopRunner(String out, String hadoopConfig, String jobConfig, String photonConverterJar, SendRunner sendTask) {
+    private File dest;
+
+    public HadoopRunner(String out, String hadoopConfig, String jobConfig, String photonConverterJar, String destinationDir, SendRunner sendTask) {
         this.sentOut = new File(out, PhotonRunner.SENT_DIR);
         this.sendTask = sendTask;
         this.hadoopConfig = hadoopConfig;
         this.jobConfig = jobConfig;
         this.photonConverterJar = photonConverterJar;
+        this.dest = new File(destinationDir);
+        dest.mkdirs();
     }
 
     @Override
@@ -83,8 +88,13 @@ public class HadoopRunner implements Callable<Void> {
                     s.release();
                 }
                 File doneMarker = new File(datasetToProcessFile.getAbsolutePath() + ".done");
-                doneMarker.createNewFile();
                 LOGGER.info("Done on hadoop " + name);
+                LOGGER.info("Moving tifascii " + name);
+                File source = new File(wbmOUT, name);
+                File lastDest = new File(dest, name);
+                source.renameTo(lastDest);
+                LOGGER.info("Moved to " + lastDest);
+                doneMarker.createNewFile();
 
             } else {
                 TimeUnit.SECONDS.sleep(10);

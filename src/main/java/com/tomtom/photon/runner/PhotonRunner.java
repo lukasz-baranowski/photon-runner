@@ -22,91 +22,98 @@ import com.tomtom.photon.runner.threads.HadoopRunner;
 import com.tomtom.photon.runner.threads.SendRunner;
 
 public class PhotonRunner extends AbstractArgs4jTool {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PhotonRunner.class);
 
-	public static final String FETCHED_DIR = "fetched";
-	public static final String SENT_DIR = "sent";
-	public static final String DONE_DIR = "done";
+    private static final Logger LOGGER = LoggerFactory.getLogger(PhotonRunner.class);
 
-	@Option(name = "--continents", usage = "Sets continents config file", aliases = "-c", required = true)
-	private File continentsFile;
+    public static final String FETCHED_DIR = "fetched";
+    public static final String SENT_DIR = "sent";
+    public static final String DONE_DIR = "done";
 
-	@Option(name = "--countryConfig", usage = "Sets country_config.xml file", aliases = "-cc", required = true)
-	private String countryConfig;
+    @Option(name = "--continents", usage = "Sets continents config file", aliases = "-c", required = true)
+    private File continentsFile;
 
-	@Option(name = "--accessPoint", usage = "Sets access-point-ws url", aliases = "-ap", required = true)
-	private String accessPointWs;
+    @Option(name = "--countryConfig", usage = "Sets country_config.xml file", aliases = "-cc", required = true)
+    private String countryConfig;
 
-	@Option(name = "--zoningservice", usage = "Sets zoningservice url", aliases = "-zs", required = true)
-	private String zoningService;
+    @Option(name = "--accessPoint", usage = "Sets access-point-ws url", aliases = "-ap", required = true)
+    private String accessPointWs;
 
-	@Option(name = "--out", usage = "Exchange dir", aliases = "-out", required = true)
-	private String out;
+    @Option(name = "--zoningservice", usage = "Sets zoningservice url", aliases = "-zs", required = true)
+    private String zoningService;
 
-	@Option(name = "--hadoopConfig", usage = "Sets hadoop config dir", aliases = "-hcd", required = true)
-	private String hadoopConfig;
+    @Option(name = "--out", usage = "Exchange dir", aliases = "-out", required = true)
+    private String out;
 
-	@Option(name = "--photonConverterJar", usage = "Sets photonConverterJar jar", aliases = "-pcj", required = true)
-	private String photonConverterJar;
+    @Option(name = "--hadoopConfig", usage = "Sets hadoop config dir", aliases = "-hcd", required = true)
+    private String hadoopConfig;
 
-	@Option(name = "--jobConfig", usage = "Sets job-config.xml file", aliases = "-jc", required = true)
-	private String jobConfig;
+    @Option(name = "--photonConverterJar", usage = "Sets photonConverterJar jar", aliases = "-pcj", required = true)
+    private String photonConverterJar;
 
-	public void run() {
-		try {
-			if (!continentsFile.exists()) {
-				throw new IllegalArgumentException("No such file: " + this.continentsFile.getAbsolutePath());
-			}
-			final List<ContinentSettings> continents = readConfig(this.continentsFile);
-			final ZoneMakerConf zoneMakerConf = ZoneMakerConf.valueOf(this.out, this.countryConfig, this.accessPointWs, this.zoningService);
+    @Option(name = "--jobConfig", usage = "Sets job-config.xml file", aliases = "-jc", required = true)
+    private String jobConfig;
 
-			ExecutorService pool = Executors.newFixedThreadPool(5);
+    @Option(name = "--destinationDir", usage = "Sets destination dir for tif ascii", aliases = "-dd", required = true)
+    private String destinationDir;
 
-			FetchRunner fetchTask = new FetchRunner(continents, zoneMakerConf);
-			SendRunner sendTask = new SendRunner(zoneMakerConf, fetchTask);
-			HadoopRunner hadoopTask = new HadoopRunner(this.out, this.hadoopConfig, this.jobConfig, this.photonConverterJar, sendTask);
-			pool.submit(fetchTask);
+    public void run() {
+        try {
+            if (!continentsFile.exists()) {
+                throw new IllegalArgumentException("No such file: " + this.continentsFile.getAbsolutePath());
+            }
+            final List<ContinentSettings> continents = readConfig(this.continentsFile);
+            final ZoneMakerConf zoneMakerConf =
+                ZoneMakerConf.valueOf(this.out, this.countryConfig, this.accessPointWs, this.zoningService);
+
+            ExecutorService pool = Executors.newFixedThreadPool(5);
+
+            FetchRunner fetchTask = new FetchRunner(continents, zoneMakerConf);
+            SendRunner sendTask = new SendRunner(zoneMakerConf, fetchTask);
+            HadoopRunner hadoopTask =
+                new HadoopRunner(this.out, this.hadoopConfig, this.jobConfig, this.photonConverterJar, this.destinationDir,
+                    sendTask);
+            pool.submit(fetchTask);
             pool.submit(sendTask);
-            pool.submit(hadoopTask);
-//            pool.submit(hadoopTask);
-//            pool.submit(hadoopTask);
+            for (int i = 0; i < 10; i++) {
+                pool.submit(hadoopTask);
+            }
 
             pool.shutdown();
-			pool.awaitTermination(365, TimeUnit.DAYS);
-		} catch (Exception e) {
-			log(e);
-		}
-	}
+            pool.awaitTermination(365, TimeUnit.DAYS);
+        } catch (Exception e) {
+            log(e);
+        }
+    }
 
-	private List<ContinentSettings> readConfig(File config) throws IOException {
-		List<ContinentSettings> result = Lists.newLinkedList();
-		log("Reading file: " + config.getAbsolutePath());
-		BufferedReader br = new BufferedReader(new FileReader(config));
-		try {
-			String line = br.readLine();
-			while (line != null && !line.isEmpty()) {
-				log("Line read: " + line);
-				result.add(ContinentSettings.build(line));
-				line = br.readLine();
-			}
-		} finally {
-			br.close();
-		}
-		return result;
-	}
+    private List<ContinentSettings> readConfig(File config) throws IOException {
+        List<ContinentSettings> result = Lists.newLinkedList();
+        log("Reading file: " + config.getAbsolutePath());
+        BufferedReader br = new BufferedReader(new FileReader(config));
+        try {
+            String line = br.readLine();
+            while (line != null && !line.isEmpty()) {
+                log("Line read: " + line);
+                result.add(ContinentSettings.build(line));
+                line = br.readLine();
+            }
+        } finally {
+            br.close();
+        }
+        return result;
+    }
 
-	private void log(String log) {
-		LOGGER.info(log);
-	}
+    private void log(String log) {
+        LOGGER.info(log);
+    }
 
     private void log(Exception e) {
         LOGGER.error(e.getMessage(), e);
     }
 
-	@Override
-	public String getName() {
-		return "PhotonRunner";
-	}
+    @Override
+    public String getName() {
+        return "PhotonRunner";
+    }
 
     @Override
     public void execute() {
