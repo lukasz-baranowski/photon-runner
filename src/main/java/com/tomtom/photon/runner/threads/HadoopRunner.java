@@ -43,7 +43,7 @@ public class HadoopRunner implements Callable<Void> {
 
     private final Semaphore s = new Semaphore(1);
 
-    private File dest;
+    private final File dest;
 
     public HadoopRunner(String out, String hadoopConfig, String jobConfig, String photonConverterJar, String destinationDir, SendRunner sendTask) {
         this.sentOut = new File(out, PhotonRunner.SENT_DIR);
@@ -61,6 +61,7 @@ public class HadoopRunner implements Callable<Void> {
             runTask();
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
+            throw e;
         }
         return null;
     }
@@ -207,7 +208,8 @@ public class HadoopRunner implements Callable<Void> {
             // Handle stdout...
             new Thread() {
 
-                public void run() {
+                @Override
+				public void run() {
                     BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     try {
                         String inputLine;
@@ -225,7 +227,8 @@ public class HadoopRunner implements Callable<Void> {
             // Handle stderr...
             new Thread() {
 
-                public void run() {
+                @Override
+				public void run() {
                     BufferedReader in = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                     try {
                         String inputLine;

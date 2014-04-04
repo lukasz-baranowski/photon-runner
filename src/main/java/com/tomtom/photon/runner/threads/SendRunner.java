@@ -9,7 +9,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -54,10 +53,10 @@ public class SendRunner implements Callable<Void> {
     public Void call() throws Exception {
         try {
             runSend();
+            finished = true;
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
-        } finally {
-            finished = true;
+            throw e;
         }
         return null;
     }
@@ -111,7 +110,7 @@ public class SendRunner implements Callable<Void> {
             BufferedWriter writer = new BufferedWriter(new FileWriter(dest));
             try {
                 String baseContent = IOUtils.toString(reader);
-                String contVersion = "";//Integer.toString((int)nextFileToSend.getParentFile().getName().charAt(0));
+                String contVersion = Integer.toString(nextFileToSend.getParentFile().getName().charAt(0) - 'A');
                 String replaced =
                     baseContent.replace("\"version\" : \"", "\"version\" : \"" + contVersion);
                 IOUtils.write(replaced, writer);

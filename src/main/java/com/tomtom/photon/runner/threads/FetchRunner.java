@@ -36,10 +36,10 @@ public class FetchRunner implements Callable<Void> {
         try {
             fetch();
 			LOGGER.info("Finished");
+			finished = true;
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
-        }finally {
-        	finished = true;
+            throw e;
         }
 		return null;
 	}
