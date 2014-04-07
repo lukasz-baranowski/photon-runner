@@ -75,13 +75,18 @@ public class SendRunner implements Callable<Void> {
 				File toBeSent = moveJsonFileFromFetchedToBeSent(file);
 				File doneMarker = new File(file.getAbsolutePath() + ".done");
 				if (!doneMarker.exists()) {
-					String name = file.getName();
-					Params p = createParamsFile(file.getParentFile(), name);
-					LOGGER.info("Sending " + name);
-					runZoneMaker(p);
-					LOGGER.info("Sent to zoning " + name);
-					moveJsonFileFromStagingToSent(file, toBeSent);
-					doneMarker.createNewFile();
+					try {
+						String name = file.getName();
+						Params p = createParamsFile(file.getParentFile(), name);
+						LOGGER.info("Sending " + name);
+						runZoneMaker(p);
+						LOGGER.info("Sent to zoning " + name);
+						moveJsonFileFromStagingToSent(file, toBeSent);
+						nextFileToSend.get().delete();
+						doneMarker.createNewFile();
+					} catch (RuntimeException e) {
+						LOGGER.warn("Timeout on Zoning...", e);
+					}
 				}
 			} else {
 				TimeUnit.SECONDS.sleep(2);
@@ -146,15 +151,8 @@ public class SendRunner implements Callable<Void> {
 
 	private void runZoneMaker(Params p) {
 		ZoneMaker zm = new ZoneMaker(p);
-		try {
-			zm.run();
-		} catch (RuntimeException e) {
-			if (e.getMessage().contains("504 Gateway Time-out")) {
-				LOGGER.warn("Timeout on Zoning...", e);
-			} else {
-				throw e;
-			}
-		}
+		zm.run();
+
 	}
 
 	private Optional<File> getNextFileToSend(File directory) {
